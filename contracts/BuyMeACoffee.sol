@@ -1,6 +1,8 @@
 //SPDX-License-Identifier: Unlicense
 pragma solidity ^0.8.0;
 
+// Deployed to Goerli at 0x67Df3f291c95913dE448c989dA7017933404e054
+
 contract BuyMeACoffee {
     //Event to emit  when a Memo is created.
     event NewMemo(
@@ -66,4 +68,22 @@ contract BuyMeACoffee {
     function getMemos() public view returns(Memo[] memory) {
         return memos;
     }
+
+    /**
+    * @dev return the current owner address
+    */
+    function getOwnerAddress() public view returns(address) {
+        return owner;
+    }
+
+    modifier isOwner() {
+        require(msg.sender == owner);
+        _;
+    }
+
+    function transferOwnership(address newOwner) public isOwner {
+        require(newOwner != address(0));
+        owner = payable(newOwner);
+    }
+
 }

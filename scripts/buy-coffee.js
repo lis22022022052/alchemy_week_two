@@ -12,10 +12,20 @@ async function getBalance(address) {
 }
 
 //Logs the Ether blances for a list of addresses.
-async function printBlances(addresses) {
+async function printBlances(addresses, ownerAddress, newOwnerAddress) {
   let idx = 0;
+  console.log(
+    `New Owner address balance: ${await getBalance(
+      newOwnerAddress
+    )} (${newOwnerAddress})`
+  );
+  console.log(
+    `Owner address balance: ${await getBalance(ownerAddress)} (${ownerAddress})`
+  );
   for (const anddress of addresses) {
-    console.log(`Address ${idx} balance: `, await getBalance(anddress));
+    console.log(
+      `Address ${idx} balance: ${await getBalance(anddress)} (${anddress})`
+    );
     idx++;
   }
 }
@@ -36,7 +46,8 @@ async function printMemos(memos) {
 
 async function main() {
   // Get example account.
-  const [owner, tipper, tipper2, tipper3] = await hre.ethers.getSigners();
+  const [owner, tipper, tipper2, tipper3, newOwner] =
+    await hre.ethers.getSigners();
 
   // Get the contract to deploy and deploy.
   const BuyMeACoffee = await hre.ethers.getContractFactory("BuyMeACoffee");
@@ -45,9 +56,9 @@ async function main() {
   console.log("BuyMeACoffee deployed to ", buyMeACoffee.address);
 
   // Check balances before the coffee purchase.
-  const addresses = [owner.address, tipper.address, buyMeACoffee.address];
+  const addresses = [tipper.address, tipper2.address, tipper3.address];
   console.log("-- start --");
-  await printBlances(addresses);
+  await printBlances(addresses, owner.address, newOwner.address);
 
   // Buy the owner a few coffess.
   const tip = { value: hre.ethers.utils.parseEther("1") };
@@ -62,19 +73,44 @@ async function main() {
     .buyCoffee("Kay", "I lov my Proof of Knowledge NFT", tip);
 
   // Check balances after coffee purchase.
-  console.log("-- bought coffee --");
-  await printBlances(addresses);
+  console.log("-- bought coffee (Carolina, Vitto, Kay)--");
+  await printBlances(addresses, owner.address, newOwner.address);
 
   // Withdraw funds.
   await buyMeACoffee.connect(owner).withdrawTips();
 
   // Check balance after withdraw.
   console.log("-- withdrawTips --");
-  await printBlances(addresses);
+  await printBlances(addresses, owner.address, newOwner.address);
 
   // Read all the memos left from the owner.
   console.log("-- memos --");
   printMemos(await buyMeACoffee.getMemos());
+
+  console.log("-- set the new owner --");
+  // Show the current owner address
+  console.log(
+    `The current owner address: ${await buyMeACoffee.getOwnerAddress()}`
+  );
+
+  // Update current owner address
+  await buyMeACoffee.transferOwnership(newOwner.address);
+
+  //Show the new current owner address
+  console.log(
+    `The new current owner address: ${await buyMeACoffee.getOwnerAddress()}`
+  );
+  // Buy the owner a few coffess.
+  await buyMeACoffee
+    .connect(tipper3)
+    .buyCoffee("Kay", "I lov my Proof of Knowledge NFT", tip);
+
+  // Withdraw funds.
+  await buyMeACoffee.connect(owner).withdrawTips();
+
+  // Check balances after coffee purchase.
+  console.log("-- bought coffee (Kay)--");
+  await printBlances(addresses, owner.address, newOwner.address);
 }
 
 // We recommend this pattern to be able to use async/await everywhere
