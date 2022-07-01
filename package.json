@@ -12,7 +12,8 @@
   "dependencies": {
     "@nomiclabs/hardhat-waffle": "^2.0.3",
     "dotenv": "^16.0.1",
-    "hardhat": "^2.9.9"
+    "hardhat": "^2.9.9",
+    "solc": "^0.8.15"
   },
   "devDependencies": {
     "@nomiclabs/hardhat-ethers": "^2.0.0",
